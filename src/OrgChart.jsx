@@ -18,16 +18,10 @@ const OrgChart = props => {
      * @param {ds item} item - the item to toggle open/closed
      */
     const toggleOpen = item => {
-        const isOpen = openNodes.find(openNode => {
-            return openNode.id === item.id;
-        });
+        const isOpen = openNodes.find(openNode => openNode.id === item.id);
         if (isOpen) {
             // close
-            setOpenNodes(
-                openNodes.filter(openNode => {
-                    return openNode.id !== item.id;
-                })
-            );
+            setOpenNodes(openNodes.filter(openNode => openNode.id !== item.id));
         } else {
             setOpenNodes([...openNodes, item]);
         }
@@ -38,13 +32,7 @@ const OrgChart = props => {
      * @param {[ds item]} universe - the current universe
      *
      */
-    const _removeFromUniverse = (targets, universe) => {
-        return universe.filter(u => {
-            return !targets.find(t => {
-                return t.id === u.id;
-            });
-        });
-    };
+    const _removeFromUniverse = (targets, universe) => universe.filter(u => !targets.find(t => t.id === u.id));
     /**
      * for each item in `currentLevelArray`, find and attach children from `universe`, recursively
      * @param {[ds item]} currentLevelArray - set of siblings
@@ -53,10 +41,10 @@ const OrgChart = props => {
     const _recursivelyBuildTree = (currentLevelArray, universe) => {
         // find all the children of this parent
         currentLevelArray.forEach(item => {
-            item.children = universe.filter(candidateChild => {
-                return key(item).displayValue === parent(candidateChild).displayValue;
+            item.children = universe.filter(
+                candidateChild => key(item).displayValue === parent(candidateChild).displayValue
                 // ... remove from universe
-            });
+            );
             if (item.children) {
                 universe = _removeFromUniverse(item.children, universe);
                 if (universe.length > 0) {
@@ -80,10 +68,11 @@ const OrgChart = props => {
             //Items where parent is undefined
             if (parent(dataRow).value === undefined) return true;
             //Items whose parents are not in the data
-            else
-                return !data.some(potentialParent => {
-                    return key(potentialParent).displayValue === parent(dataRow).displayValue;
-                });
+            else {
+                return !data.some(
+                    potentialParent => key(potentialParent).displayValue === parent(dataRow).displayValue
+                );
+            }
         });
 
         // remove first level...

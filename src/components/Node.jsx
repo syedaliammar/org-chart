@@ -1,5 +1,5 @@
 import { Component, createElement, useState } from "react";
-import { Tree, TreeNode } from "react-organizational-chart";
+import { TreeNode } from "react-organizational-chart";
 import { DraggableItem } from "./DraggableItem";
 
 //Defining the custom Node here
@@ -9,12 +9,11 @@ export const Node = props => {
     const { onDrag, onDrop, node, item, toggleOpen, isOpen } = props;
 
     //Method to render children of a node. Receives children as param
-    const _renderChildrenTreeNodes = children => {
-        return children.map(item => (
+    const _renderChildrenTreeNodes = children =>
+        children.map(item => (
             //Make a Node out of every child passed to this method
             <Node onDrag={onDrag} onDrop={onDrop} node={node} item={item} toggleOpen={toggleOpen} isOpen={isOpen} />
         ));
-    };
 
     //Define hasChildren
     const hasChildren = item.children && item.children.length > 0;
