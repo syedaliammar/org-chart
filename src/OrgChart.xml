@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<widget id="mendix.orgchart.OrgChart" pluginWidget="true" needsEntityContext="true" offlineCapable="true"
+        supportedPlatform="Web"
+        xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../node_modules/mendix/custom_widget.xsd">
+    <name>Org Chart</name>
+    <description>This widget builds an organizational chart based on child and parent key values. Every node in the chart is drag and droppable, allowing to set event handlers on drag start or drop events.</description>
+    <icon/>
+      <properties>
+    <propertyGroup caption="General">
+      <property key="datasource" type="datasource" required="true" isList="true">
+        <caption>Data Source</caption>
+        <description></description>
+      </property>
+      <property key="content" type="widgets" required="true" dataSource="datasource">
+        <caption>Content</caption>
+        <description></description>
+      </property>
+      <property key="childkey" type="attribute" required="false" dataSource="datasource">
+        <caption>ID</caption>
+        <description>Unique ID of the node</description>
+        <attributeTypes>
+          <attributeType name="AutoNumber" />
+          <attributeType name="Integer" />
+        </attributeTypes>
+      </property>
+      <property key="parent" type="attribute" required="false" dataSource="datasource">
+        <caption>Parent ID</caption>
+        <description>Unique parent ID of the node</description>
+        <attributeTypes>
+          <attributeType name="AutoNumber" />
+          <attributeType name="Integer" />
+        </attributeTypes>
+      </property>
+    </propertyGroup>
+    <propertyGroup caption="Behavior">
+      <property key="onDragStart" type="action" dataSource="datasource">
+        <caption>On Drag Start</caption>
+        <description></description>
+      </property>
+      <property key="onDragEnd" type="action" dataSource="datasource">
+        <caption>On Drag End</caption>
+        <description></description>
+      </property>
+      <property key="allowExport" type="boolean" defaultValue="false">
+        <caption>Allow Export</caption>
+        <description>Allow exporting the chart (PNG, SVG)</description>
+      </property>
+    </propertyGroup>
+  </properties>
+</widget>

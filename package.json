@@ -1,0 +1,36 @@
+{
+    "name": "orgchart",
+    "widgetName": "OrgChart",
+    "version": "1.0.0",
+    "description": "This widget builds an organizational chart based on child and parent key values. Every node in the chart is drag and droppable, allowing to set event handlers on drag start or drop events.",
+    "copyright": "",
+    "author": "Ammar Rizvi",
+    "config": {
+        "widgetPath": "../..//widgets",
+        "projectPath": "../..//",
+        "mendixHost": "http://localhost:8080",
+        "developmentPort": "3000"
+    },
+    "packagePath": "mendix",
+    "scripts": {
+        "start": "concurrently \"pluggable-widgets-tools start:server --open\" \"npm:dev\"",
+        "dev": "pluggable-widgets-tools start:js",
+        "build": "pluggable-widgets-tools build:js",
+        "lint": "pluggable-widgets-tools lint",
+        "lint:fix": "pluggable-widgets-tools lint:fix",
+        "prerelease": "npm run lint",
+        "release": "pluggable-widgets-tools release:js"
+    },
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "@mendix/pluggable-widgets-tools": "^8.9.2"
+    },
+    "dependencies": {
+        "classnames": "^2.2.6",
+        "file-saver": "^2.0.5",
+        "html-to-image": "^1.3.20",
+        "react-dnd": "^11.1.3",
+        "react-dnd-html5-backend": "^11.1.3",
+        "react-organizational-chart": "^1.1.0"
+    }
+}
