@@ -1,3 +1,4 @@
+import { Component, createElement } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 export const DraggableItem = props => {

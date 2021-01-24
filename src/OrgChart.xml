@@ -16,7 +16,7 @@
         <caption>Content</caption>
         <description></description>
       </property>
-      <property key="childkey" type="attribute" required="false" dataSource="datasource">
+      <property key="childkey" type="attribute" required="true" dataSource="datasource">
         <caption>ID</caption>
         <description>Unique ID of the node</description>
         <attributeTypes>
@@ -24,7 +24,7 @@
           <attributeType name="Integer" />
         </attributeTypes>
       </property>
-      <property key="parent" type="attribute" required="false" dataSource="datasource">
+      <property key="parent" type="attribute" required="true" dataSource="datasource">
         <caption>Parent ID</caption>
         <description>Unique parent ID of the node</description>
         <attributeTypes>
