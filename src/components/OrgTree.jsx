@@ -1,28 +1,55 @@
 import { Component, createElement, useState } from "react";
-import { Tree } from "react-organizational-chart";
 import { Node } from "./Node";
+import { Tree } from "react-organizational-chart";
 
 export const OrgTree = props => {
-    const { onDrag, onDrop, node, data, openNodes, toggleOpen } = props;
-    /**
-     * checks to see if the give item is open
-     * @param {ds item} item - the item to check
-     * @returns {boolean} - true if the item is open; false if not;
-     */
-    const isNodeOpen = item => !!openNodes.find(n => n.id === item.id);
+    const { topLevelNodes, onDrop, onDrag, template, folding, isSearchActivated } = props;
+    const pageSize = 50;
+    const [visiblePages, setVisiblePages] = useState(1);
 
-    const _renderTreeNodes = map =>
-        map != null
-            ? map.map(item => (
-                  <Node
-                      onDrag={onDrag}
-                      onDrop={onDrop}
-                      node={node}
-                      item={item}
-                      isOpen={isNodeOpen}
-                      toggleOpen={toggleOpen}
-                  />
-              ))
-            : null;
-    return <Tree label={null}>{_renderTreeNodes(data)}</Tree>;
+    const showPaginationButtons = () => pageSize * visiblePages < topLevelNodes.length;
+
+    return (
+        <div>
+            <Tree label={null}>
+                {topLevelNodes?.slice(0, Math.min(pageSize * visiblePages, topLevelNodes.length)).map(dataItem => (
+                    <Node
+                        key={dataItem.itemID}
+                        dataItem={dataItem}
+                        onDrag={onDrag}
+                        onDrop={onDrop}
+                        template={template}
+                        folding={folding}
+                        isSearchActivated={isSearchActivated}
+                    />
+                ))}
+            </Tree>
+
+            {showPaginationButtons() ? (
+                <div>
+                    <button
+                        onClick={() => {
+                            setVisiblePages(visiblePages + 1);
+                        }}
+                    >
+                        50 More
+                    </button>
+                    <button
+                        onClick={() => {
+                            setVisiblePages(visiblePages + 2);
+                        }}
+                    >
+                        100 More
+                    </button>
+                    <button
+                        onClick={() => {
+                            setVisiblePages(visiblePages + 10);
+                        }}
+                    >
+                        500 More
+                    </button>
+                </div>
+            ) : null}
+        </div>
+    );
 };

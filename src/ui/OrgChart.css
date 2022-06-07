@@ -1,6 +1,39 @@
 /*
 Place your custom CSS here
 */
-.widget-hello-world {
+@font-face {
+    name: "exportFont";
+    /* open-sans-regular - latin */
 
+    font-family: "Open Sans";
+    font-style: normal;
+    font-weight: 400;
+    src: local("");
+}
+
+#action-bar {
+    width: 100%;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+}
+
+#action-buttons button {
+    margin-right: 5px;
+}
+#action-buttons div {
+    float: left;
+}
+
+#search-box {
+    margin-left: auto;
+    width: 25%;
+}
+
+#org-chart {
+    overflow-x: scroll;
+}
+
+.center {
+    text-align: center;
 }

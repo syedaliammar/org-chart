@@ -1,140 +1,139 @@
-import { Component, createElement, useState } from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { hot } from "react-hot-loader/root";
-import * as htmlToImage from "html-to-image";
-import { saveAs } from "file-saver";
-
 import "./ui/OrgChart.css";
+import { Component, createElement, useState } from "react";
+import { createDataStructure, DataItem } from "./model";
+import { DndProvider } from "react-dnd";
+import { hot } from "react-hot-loader/root";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { OrgTree } from "./components/OrgTree";
+import { ActionBar } from "./components/ActionBar";
 
-const OrgChart = props => {
-    const { onDragEnd, onDragStart, content, parent, childkey: key, datasource: ds, allowExport } = props;
-    const [openNodes, setOpenNodes] = useState([]);
-    const exportFileName = "OrgChart";
+class OrgChart extends Component {
+    constructor(props) {
+        super(props);
 
-    /**
-     * toggles an item open/closed (so that its children are shown or hidden)
-     * @param {ds item} item - the item to toggle open/closed
-     */
-    const toggleOpen = item => {
-        const isOpen = openNodes.find(openNode => openNode.id === item.id);
-        if (isOpen) {
-            // close
-            setOpenNodes(openNodes.filter(openNode => openNode.id !== item.id));
-        } else {
-            setOpenNodes([...openNodes, item]);
+        this.state = {
+            isSearchActivated: false, //Used to determine if search mode is activated. This renders children only one level deeper than the searched node/item
+            isParentExpanded: false,
+            loaded: false,
+            topLevelNodes: [],
+            folding: undefined,
+            allDataItems: []
+        };
+
+        this.setTopLevelNodes = this.setTopLevelNodes.bind(this);
+        this.setIsSearchActivated = this.setIsSearchActivated.bind(this);
+        this.setFolding = this.setFolding.bind(this);
+    }
+
+    setTopLevelNodes(topLevelNodes) {
+        this.setState({
+            ...this.state,
+            topLevelNodes: topLevelNodes
+        });
+    }
+
+    setFolding(folding) {
+        this.setState({
+            ...this.state,
+            folding: folding
+        });
+    }
+
+    setIsSearchActivated(newBoolValue) {
+        this.setState({
+            isSearchActivated: newBoolValue
+        });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.datasource !== this.props.datasource) {
+            if (this.props.datasource?.status === "available") {
+                this.startTime = performance.now();
+                const dataStructure = createDataStructure(
+                    this.props.datasource.items,
+                    this.props.childkey,
+                    this.props.parent,
+                    //If no search attribute has been selected, enable search on the childKey by default
+                    this.props.searchAttribute == null ? this.props.childkey : this.props.searchAttribute
+                );
+                const topLevelNodes = dataStructure.getTopLevelNodes();
+
+                this.setState({
+                    ...this.state,
+                    loaded: true,
+                    topLevelNodes,
+                    allDataItems: dataStructure
+                });
+
+                const endTime = performance.now();
+                logger.info(`Elapsed Time: ${endTime - this.startTime}`);
+            }
+        }
+    }
+
+    toggleIsParentExpanded = isParentExpanded => {
+        this.setState({
+            ...this.state,
+            isParentExpanded: isParentExpanded
+        });
+    };
+
+    setTopLevelNodeById = id => {
+        this.toggleIsParentExpanded(!this.state.isParentExpanded);
+        const node = this.state.allDataItems.getItemWithID(id);
+
+        this.setTopLevelNodes([node]);
+    };
+
+    showParentNavigation = () => {
+        if (this.state.isSearchActivated) {
+            const parentID = this.state.topLevelNodes[0]._parentID;
+            return (
+                parentID !== undefined && parentID !== null && this.state.allDataItems.getItemWithID(parentID) !== null
+            );
         }
     };
-    /**
-     * removes any found items from the universe so they are not checked again.
-     * @param {[ds item]} targets - the ds items that we want to remove from the unviverse
-     * @param {[ds item]} universe - the current universe
-     *
-     */
-    const _removeFromUniverse = (targets, universe) => universe.filter(u => !targets.find(t => t.id === u.id));
-    /**
-     * for each item in `currentLevelArray`, find and attach children from `universe`, recursively
-     * @param {[ds item]} currentLevelArray - set of siblings
-     * @param {[ds item]} universe - unattached set of ds items
-     */
-    const _recursivelyBuildTree = (currentLevelArray, universe) => {
-        // find all the children of this parent
-        currentLevelArray.forEach(item => {
-            item.children = universe.filter(
-                candidateChild => key(item).displayValue === parent(candidateChild).displayValue
-                // ... remove from universe
-            );
-            if (item.children) {
-                universe = _removeFromUniverse(item.children, universe);
-                if (universe.length > 0) {
-                    _recursivelyBuildTree(item.children, universe);
-                }
-            }
-        });
-    };
-    /**
-     * Identify the top level nodes (those without parents), and begin building the tree
-     * @param {mx:datasource} data - the datasource from mendix
-     * @returns {[tree structure]} - the converted tree structure ([{id: 1, children:[{id: 2}, {id: 3}]}])
-     */
-    const _getDataMap = data => {
-        if (!data) return null;
-        let universe = data,
-            ret = [];
 
-        //Get items without parents and items whose parents are not in the data
-        ret = data.filter(dataRow => {
-            //Items where parent is undefined
-            if (parent(dataRow).value === undefined) return true;
-            //Items whose parents are not in the data
-            else {
-                return !data.some(
-                    potentialParent => key(potentialParent).displayValue === parent(dataRow).displayValue
-                );
-            }
-        });
-
-        // remove first level...
-        universe = _removeFromUniverse(ret, universe);
-        // for each top level node, recursively build the tree
-        _recursivelyBuildTree(ret, universe);
-        return ret;
-    };
-
-    const _exportToPNG = domNodeToExport => {
-        htmlToImage
-            .toPng(domNodeToExport)
-            .then(function(dataUrl) {
-                saveAs(dataUrl, exportFileName + ".png");
-            })
-            .catch(function(error) {
-                console.error("Something went wrong while generating the PNG", error);
-            });
-    };
-
-    const _exportToSVG = domNodeToExport => {
-        htmlToImage
-            .toSvg(domNodeToExport)
-            .then(function(dataUrl) {
-                saveAs(dataUrl, exportFileName + ".svg");
-            })
-            .catch(function(error) {
-                console.error("Something went wrong while generating the SVG", error);
-            });
-    };
-
-    return (
-        <DndProvider backend={HTML5Backend}>
-            {allowExport ? (
-                <div id="modebar">
-                    <button
-                        id="export_org_png"
-                        title="Download chart as PNG"
-                        onClick={() => _exportToPNG(document.getElementById("org_chart"))}
-                    >
-                        PNG
-                    </button>
-                    <button
-                        id="export_org_svg"
-                        title="Download chart as SVG"
-                        onClick={() => _exportToSVG(document.getElementById("org_chart"))}
-                    >
-                        SVG
-                    </button>
-                </div>
-            ) : null}
-            <div id="org_chart">
-                <OrgTree
-                    data={_getDataMap(ds.items)}
-                    onDrop={onDragEnd}
-                    onDrag={onDragStart}
-                    node={content}
-                    openNodes={openNodes}
-                    toggleOpen={toggleOpen}
-                />
+    render() {
+        return (
+            <div>
+                {this.state.loaded ? (
+                    <DndProvider backend={HTML5Backend}>
+                        <ActionBar
+                            {...this.props}
+                            allDataItems={this.state.allDataItems}
+                            setTopLevelNodes={this.setTopLevelNodes}
+                            setIsSearchActivated={this.setIsSearchActivated}
+                            setFolding={this.setFolding}
+                        ></ActionBar>
+                        <div id="org-chart">
+                            {this.showParentNavigation() ? (
+                                <div
+                                    id="parentnav"
+                                    className="center"
+                                    onClick={() => this.setTopLevelNodeById(this.state.topLevelNodes[0]._parentID)}
+                                >
+                                    {this.state.isParentExpanded ? "-" : "+"}
+                                </div>
+                            ) : null}
+                            <OrgTree
+                                topLevelNodes={this.state.topLevelNodes}
+                                onDrop={this.props.onDragEnd}
+                                onDrag={this.props.onDragStart}
+                                template={this.props.content}
+                                folding={this.state.folding}
+                                isSearchActivated={this.state.isSearchActivated}
+                            />
+                        </div>
+                    </DndProvider>
+                ) : (
+                    <div class="mx-progress">
+                        <div class="mx-progress-indicator"></div>
+                    </div>
+                )}
             </div>
-        </DndProvider>
-    );
-};
+        );
+    }
+}
+
 export default hot(OrgChart);
